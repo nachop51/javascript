@@ -1,0 +1,15 @@
+body {
+  background-color: black;
+  font-family: "Chakra Petch", sans-serif;
+}
+
+.clock {
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  color: aqua;
+  font-size: 4rem;
+}
