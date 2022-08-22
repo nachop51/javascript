@@ -1,8 +1,8 @@
-let result = document.querySelector(".result");
-let prev = document.querySelector(".prev");
-let numbers = document.querySelectorAll(".number");
-let operators = document.querySelectorAll(".operator");
-let equal = document.querySelector(".equal");
+const result = document.querySelector(".result");
+const prev = document.querySelector(".prev");
+const numbers = document.querySelectorAll(".number");
+const operators = document.querySelectorAll(".operator");
+const equal = document.querySelector(".equal");
 let currentOperator = null;
 
 function calculate(op) {

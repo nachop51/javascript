@@ -1,0 +1,25 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.heading {
+  background-color: #2d8e99;
+  color: #fff;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.block {
+  width: 200px;
+  height: 200px;
+  border: 0.5px solid #ccc;
+}
