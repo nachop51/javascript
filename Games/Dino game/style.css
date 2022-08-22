@@ -1,0 +1,73 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+#game {
+  width: 500px;
+  height: 200px;
+  border: 1px solid black;
+  z-index: 0;
+}
+
+#game::before {
+  content: "";
+  clear: both;
+  display: block;
+  position: relative;
+  top: 180px;
+  height: 0;
+  width: 500px;
+  border-top: 1px solid grey;
+  z-index: 1;
+}
+
+#character {
+  width: 20px;
+  height: 50px;
+  background-image: url(holbie.png);
+  position: relative;
+  top: 140px;
+  left: 10px;
+  z-index: 3;
+}
+
+.animate {
+  animation: jump 0.5s;
+}
+
+#block {
+  width: 20px;
+  height: 20px;
+  background-image: url(cactus.png);
+  background-size: cover;
+  position: relative;
+  top: 120px;
+  left: 480px;
+  animation: block 1s infinite linear;
+  z-index: 3;
+}
+
+@keyframes jump {
+  0% {
+    top: 140px;
+  }
+  30% {
+    top: 90px;
+  }
+  70% {
+    top: 90px;
+  }
+  100% {
+    top: 140px;
+  }
+}
+
+@keyframes block {
+  0% {
+    left: 480px;
+  }
+  100% {
+    left: -40px;
+  }
+}
