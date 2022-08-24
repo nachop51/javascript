@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  font-family: "Raleway", sans-serif;
 }
 
 .heading {
@@ -10,16 +11,104 @@
   text-transform: uppercase;
 }
 
-.game {
+.title {
+  font-size: 3rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+#color {
+  font-size: 4rem;
+  font-weight: bold;
+  margin: 0.5rem;
+}
+
+.options {
   display: flex;
   flex-direction: row;
+  justify-content: space-around;
+  margin: 0 5rem;
+  background-color: #fff;
+  color: #2d8e99;
+}
+
+.btn {
+  display: inline-block;
+  background-color: #fff;
+  font-weight: 300;
+  font-size: 1.2rem;
+  padding: 0.2rem 1rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.selected {
+  background-color: #2d8e99;
+  color: #fff;
+}
+
+.container {
+  display: flex;
   justify-content: center;
-  align-items: center;
+  align-content: flex-start;
+  width: 100vw;
+  background-color: #232323;
+  height: 700px;
+}
+
+.game {
+  padding-top: 3rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
   gap: 10px;
+  background-color: #232323;
+  width: 700px;
 }
 
 .block {
   width: 200px;
   height: 200px;
-  border: 0.5px solid #ccc;
+  border-radius: 40px;
+  transition: all 0.2s;
+  cursor: pointer;
+  background-color: #ccc;
+}
+
+.block:hover {
+  box-shadow: 2px 2px 4px 4px rgba(0, 0, 0, 0.5);
+  transform: translateY(-4px);
+}
+
+.block:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 4px 4px rgba(0, 0, 0, 0.2);
+}
+
+.correct {
+  animation: correct 0.5s;
+}
+
+.wrong {
+  animation: wrong 0.5s;
+}
+
+@keyframes correct {
+  30% {
+    background-color: #aaffaa;
+  }
+  60% {
+    background-color: #aaffaa;
+  }
+}
+
+@keyframes wrong {
+  30% {
+    background-color: #ff2a2a;
+  }
+  60% {
+    background-color: #ff2a2a;
+  }
 }
