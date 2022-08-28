@@ -1,6 +1,6 @@
 //jshint esversion:6
-let character = document.getElementById("character");
-let block = document.getElementById("block");
+const character = document.getElementById("character");
+const block = document.getElementById("block");
 
 function jump() {
   if (!character.classList.contains("animate")) {
