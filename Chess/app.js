@@ -270,6 +270,7 @@ class King extends Piece {
 	}
 
 	getValidMoves() {
+		// TODO: Castling short and long
 		let validMoves = [];
 		let moves = [
 			[this.x + 1, this.y + 1], // Right Up
@@ -303,6 +304,20 @@ class King extends Piece {
 			}
 			return true;
 		});
+
+		let enemyPieces =
+			this.color === "white" ? board.blackPieces : board.whitePieces;
+		let attackedSquares = [];
+		enemyPieces.forEach((piece) => {
+			attackedSquares = attackedSquares.concat(piece.getValidMoves());
+		});
+		validMoves = validMoves.filter((move) => {
+			let index = attackedSquares.findIndex(
+				(square) => square[0] === move[0] && square[1] === move[1]
+			);
+			return index === -1;
+		});
+
 		return validMoves;
 	}
 }
@@ -333,6 +348,9 @@ class Board {
 		this.turn = "white";
 		this.root = document.getElementById("root");
 		this.root.classList.toggle("rotate");
+
+		this.moveCount = 0;
+		this.moveHistory = [];
 
 		this.highlighting = false;
 		this.lastPieceHighlighted = null;
@@ -431,9 +449,43 @@ class Board {
 		this.updateBoard();
 	}
 
-	prettifyCoords(x, y) {
+	prettifyCoords(x, y, oldX, oldY, piece, capture, check) {
 		let letters = ["h", "g", "f", "e", "d", "c", "b", "a"];
-		console.log(letters[x] + (y + 1));
+
+		if (!piece) {
+			console.log(`${letters[x]}${y + 1}}`);
+			return;
+		}
+
+		let move = "";
+
+		if (piece.type !== "pawn") {
+			move += piece.type[0].toUpperCase();
+		}
+		if (capture) {
+			if (piece.type === "pawn") {
+				move += letters[oldX];
+			}
+			move += "x";
+		}
+		move += letters[x];
+		move += y + 1;
+		if (check) move += "+";
+		console.log(move);
+	}
+
+	printMoveHistory() {
+		this.moveHistory.forEach((move) => {
+			this.prettifyCoords(
+				move.x,
+				move.y,
+				move.oldX,
+				move.oldY,
+				move.piece,
+				move.capture,
+				move.check
+			);
+		});
 	}
 
 	isCheck(piece) {
@@ -452,6 +504,8 @@ class Board {
 			king.underCheck = true;
 			return true;
 		}
+		king.piece.classList.remove("check");
+		king.underCheck = false;
 		return false;
 	}
 
@@ -472,14 +526,17 @@ class Board {
 		// Get all enemy pieces that can attack the king
 		let enemyPieces =
 			piece.color === "white" ? this.blackPieces : this.whitePieces;
+		// Filter out the king, pawns, and knights because they are special
+		// and the old piece because it is no longer there because was captured
+		let filteredPieces = enemyPieces.filter(
+			(piece) =>
+				piece.type !== "king" &&
+				piece.type !== "pawn" &&
+				piece.type !== "knight" &&
+				piece !== oldPiece
+		);
 		let enemyMoves = [];
-		enemyPieces.forEach((piece) => {
-			if (
-				piece.type === "king" ||
-				piece.type === "pawn" ||
-				piece.type === "knight"
-			)
-				return;
+		filteredPieces.forEach((piece) => {
 			let moves = piece.getValidMoves();
 			// if (moves.length !== 0) {
 			// 	console.log({ piece });
@@ -503,13 +560,22 @@ class Board {
 		return false;
 	}
 
+	isCheckmate(piece) {
+		let moves = piece.getValidMoves();
+		let king = null;
+		// TODO: Check if the king can move out of check or if a piece can block the check
+	}
+
 	move(x, y) {
 		let piece = this.lastPieceHighlighted;
 
+		let oldX = piece.x;
+		let oldY = piece.y;
 		// Check if the move leaves the king in check
 		if (this.leavesKingInCheck(piece, x, y)) return;
 		// If there is a piece at the destination, remove it from the array
 		// or in chess terms, capture it
+		let capture = false;
 		if (this.board[y][x].tile.currentPiece) {
 			let index = this.whitePieces.indexOf(this.board[y][x].tile.currentPiece);
 			if (index !== -1) {
@@ -518,6 +584,7 @@ class Board {
 				index = this.blackPieces.indexOf(this.board[y][x].tile.currentPiece);
 				this.blackPieces.splice(index, 1);
 			}
+			capture = true;
 		}
 		this.board[piece.y][piece.x].tile.currentPiece = null;
 		this.board[y][x].tile.currentPiece = piece;
@@ -526,10 +593,21 @@ class Board {
 		this.updateBoard();
 		this.clearHighlights();
 
-		if (this.isCheck(piece));
+		let check = this.isCheck(piece); // Check if the move puts the enemy king in check
+
+		// TODO: After rendering the pieces, check if the king is in checkmate
+		// TODO: Get the king out of check if a move is made
+
+		if (check) {
+			if (this.isCheckmate(piece))
+				console.log(`${piece.color} wins by checkmate!`);
+			else console.log(`${piece.color} puts the enemy king in check!`);
+		}
 
 		this.highlighting = false;
 		this.lastPieceHighlighted = null;
+		if (this.turn === "white") this.moveCount++;
+		this.moveHistory.push({ oldX, oldY, x, y, piece, capture, check });
 		this.turn = this.turn === "white" ? "black" : "white";
 		piece.alreadyMoved = true;
 	}
