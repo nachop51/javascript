@@ -12,12 +12,10 @@ class Piece {
 		this.piece = document.createElement("div");
 		this.piece.classList.add("piece");
 		this.piece.classList.add(this.color);
-		this.piece.classList.add(this.type);
 		this.piece.style.backgroundImage = `url("assets/${this.color}-${this.type}.png")`;
 		this.piece.style.backgroundSize = "cover";
 		this.piece.style.backgroundPosition = "center";
-		this.highlighting = false;
-
+		this.alreadyMoved = false;
 		this.board = board.board;
 
 		this.piece.addEventListener("click", () => {
@@ -28,6 +26,7 @@ class Piece {
 	}
 
 	pieceThere(x, y) {
+		if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) return false;
 		return this.board[y][x].tile.currentPiece;
 	}
 
@@ -39,23 +38,67 @@ class Piece {
 class Pawn extends Piece {
 	constructor(x, y, color, type, board) {
 		super(x, y, color, type, board);
-		this.firstMove = true;
 	}
 
 	getValidMoves() {
 		let validMoves = [];
 
-		if (this.firstMove) {
+		if (!this.alreadyMoved) {
 			if (this.color === "white") {
-				validMoves.push([this.x, this.y + 2]);
+				if (
+					!this.pieceThere(this.x, this.y + 1) &&
+					!this.pieceThere(this.x, this.y + 2)
+				)
+					validMoves.push([this.x, this.y + 2]);
 			} else {
-				validMoves.push([this.x, this.y - 2]);
+				if (
+					!this.pieceThere(this.x, this.y - 1) &&
+					!this.pieceThere(this.x, this.y - 2)
+				)
+					validMoves.push([this.x, this.y - 2]);
 			}
 		}
 		if (this.color === "white") {
-			validMoves.push([this.x, this.y + 1]);
+			if (!this.pieceThere(this.x, this.y + 1))
+				validMoves.push([this.x, this.y + 1]);
 		} else {
-			validMoves.push([this.x, this.y - 1]);
+			if (!this.pieceThere(this.x, this.y - 1))
+				validMoves.push([this.x, this.y - 1]);
+		}
+
+		validMoves = validMoves.concat(this.getAttackMoves());
+
+		return validMoves;
+	}
+
+	getAttackMoves() {
+		let validMoves = [];
+		if (this.color === "white") {
+			if (
+				this.pieceThere(this.x + 1, this.y + 1) &&
+				!this.sameColorPiece(this.x + 1, this.y + 1)
+			) {
+				validMoves.push([this.x + 1, this.y + 1]);
+			}
+			if (
+				this.pieceThere(this.x - 1, this.y + 1) &&
+				!this.sameColorPiece(this.x - 1, this.y + 1)
+			) {
+				validMoves.push([this.x - 1, this.y + 1]);
+			}
+		} else {
+			if (
+				this.pieceThere(this.x + 1, this.y - 1) &&
+				!this.sameColorPiece(this.x + 1, this.y - 1)
+			) {
+				validMoves.push([this.x + 1, this.y - 1]);
+			}
+			if (
+				this.pieceThere(this.x - 1, this.y - 1) &&
+				!this.sameColorPiece(this.x - 1, this.y - 1)
+			) {
+				validMoves.push([this.x - 1, this.y - 1]);
+			}
 		}
 		return validMoves;
 	}
@@ -223,19 +266,20 @@ class Queen extends Piece {
 class King extends Piece {
 	constructor(x, y, color, type, board) {
 		super(x, y, color, type, board);
+		this.underCheck = false;
 	}
 
 	getValidMoves() {
 		let validMoves = [];
 		let moves = [
-			[this.x + 1, this.y + 1], // Up Right
-			[this.x + 1, this.y - 1], // Up Left
-			[this.x - 1, this.y + 1], // Down Right
-			[this.x - 1, this.y - 1], // Down Left
-			[this.x + 1, this.y], // Up
-			[this.x - 1, this.y], // Down
-			[this.x, this.y + 1], // Right
-			[this.x, this.y - 1], // Left
+			[this.x + 1, this.y + 1], // Right Up
+			[this.x + 1, this.y - 1], // Right Down
+			[this.x - 1, this.y + 1], // Left Up
+			[this.x - 1, this.y - 1], // Left Down
+			[this.x + 1, this.y], // Right
+			[this.x - 1, this.y], // Left
+			[this.x, this.y + 1], // Up
+			[this.x, this.y - 1], // Down
 		];
 
 		// Now filter if the move is inside the board
@@ -293,8 +337,6 @@ class Board {
 		this.highlighting = false;
 		this.lastPieceHighlighted = null;
 
-		this.moveListener = this.moveListener.bind(this);
-
 		this.createBoard();
 	}
 
@@ -349,8 +391,6 @@ class Board {
 		this.whitePieces.push(new King(3, 0, "white", "king", this));
 		this.blackPieces.push(new King(3, 7, "black", "king", this));
 
-		this.whitePieces.push(new Queen(1, 2, "white", "queen", this));
-
 		this.updateBoard();
 	}
 
@@ -391,17 +431,114 @@ class Board {
 		this.updateBoard();
 	}
 
-	// Weird behavior when clicking
-	moveListener(e) {
-		console.log(e.target.board);
-		e.target.board.move(e.target.x, e.target.y);
+	prettifyCoords(x, y) {
+		let letters = ["h", "g", "f", "e", "d", "c", "b", "a"];
+		console.log(letters[x] + (y + 1));
+	}
+
+	isCheck(piece) {
+		let king = null;
+		if (piece.color === "white") {
+			king = this.blackPieces.find((piece) => piece.type === "king");
+		} else {
+			king = this.whitePieces.find((piece) => piece.type === "king");
+		}
+		let moves = piece.getValidMoves();
+		let index = moves.findIndex(
+			(move) => move[0] === king.x && move[1] === king.y
+		);
+		if (index !== -1) {
+			king.piece.classList.add("check");
+			king.underCheck = true;
+			return true;
+		}
+		return false;
+	}
+
+	leavesKingInCheck(piece, toX, toY) {
+		let king = null;
+		if (piece.color === "white") {
+			king = this.whitePieces.find((piece) => piece.type === "king");
+		} else {
+			king = this.blackPieces.find((piece) => piece.type === "king");
+		}
+		let originalX = piece.x;
+		let originalY = piece.y;
+		piece.x = toX;
+		piece.y = toY;
+		let oldPiece = this.board[toY][toX].tile.currentPiece;
+		this.board[toY][toX].tile.currentPiece = piece;
+		this.board[originalY][originalX].tile.currentPiece = null;
+		// Get all enemy pieces that can attack the king
+		let enemyPieces =
+			piece.color === "white" ? this.blackPieces : this.whitePieces;
+		let enemyMoves = [];
+		enemyPieces.forEach((piece) => {
+			if (
+				piece.type === "king" ||
+				piece.type === "pawn" ||
+				piece.type === "knight"
+			)
+				return;
+			let moves = piece.getValidMoves();
+			// if (moves.length !== 0) {
+			// 	console.log({ piece });
+			// 	for (let i = 0; i < moves.length; i++) {
+			// 		this.prettifyCoords(moves[i][0], moves[i][1]);
+			// 	}
+			// }
+			enemyMoves = enemyMoves.concat(moves);
+		});
+		piece.x = originalX;
+		piece.y = originalY;
+		this.board[toY][toX].tile.currentPiece = oldPiece;
+		this.board[originalY][originalX].tile.currentPiece = piece;
+		// Check if the move leaves the king in check
+		let index = enemyMoves.findIndex(
+			(move) => move[0] === king.x && move[1] === king.y
+		);
+		if (index !== -1) {
+			return true;
+		}
+		return false;
+	}
+
+	move(x, y) {
+		let piece = this.lastPieceHighlighted;
+
+		// Check if the move leaves the king in check
+		if (this.leavesKingInCheck(piece, x, y)) return;
+		// If there is a piece at the destination, remove it from the array
+		// or in chess terms, capture it
+		if (this.board[y][x].tile.currentPiece) {
+			let index = this.whitePieces.indexOf(this.board[y][x].tile.currentPiece);
+			if (index !== -1) {
+				this.whitePieces.splice(index, 1);
+			} else {
+				index = this.blackPieces.indexOf(this.board[y][x].tile.currentPiece);
+				this.blackPieces.splice(index, 1);
+			}
+		}
+		this.board[piece.y][piece.x].tile.currentPiece = null;
+		this.board[y][x].tile.currentPiece = piece;
+		piece.x = x;
+		piece.y = y;
+		this.updateBoard();
+		this.clearHighlights();
+
+		if (this.isCheck(piece));
+
+		this.highlighting = false;
+		this.lastPieceHighlighted = null;
+		this.turn = this.turn === "white" ? "black" : "white";
+		piece.alreadyMoved = true;
 	}
 
 	clearHighlights() {
 		this.board.forEach((row) => {
 			row.forEach((tile) => {
 				tile.tile.classList.remove("highlight");
-				tile.tile.removeEventListener("click", this.moveListener);
+				tile.tile.onclick = null;
 			});
 		});
 	}
@@ -418,27 +555,12 @@ class Board {
 
 		moves.forEach((move) => {
 			this.board[move[1]][move[0]].tile.classList.add("highlight");
-
-			this.board[move[1]][move[0]].tile.addEventListener(
-				"click",
-				this.moveListener
-			);
+			this.board[move[1]][move[0]].tile.onclick = (e) => {
+				this.move(move[0], move[1]);
+			};
 		});
 		this.lastPieceHighlighted = piece;
 		this.highlighting = true;
-	}
-
-	move(x, y) {
-		let piece = this.lastPieceHighlighted;
-		this.board[piece.y][piece.x].tile.currentPiece = null;
-		this.board[y][x].tile.currentPiece = piece;
-		piece.x = x;
-		piece.y = y;
-		this.updateBoard();
-		this.clearHighlights();
-		this.highlighting = false;
-		this.lastPieceHighlighted = null;
-		this.turn = this.turn === "white" ? "black" : "white";
 	}
 }
 
