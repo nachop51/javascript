@@ -102,6 +102,39 @@ class Pawn extends Piece {
 		}
 		return validMoves;
 	}
+
+	getAttackMoves() {
+		let validMoves = [];
+
+		if (this.color === "white") {
+			if (
+				this.pieceThere(this.x + 1, this.y + 1) &&
+				!this.sameColorPiece(this.x + 1, this.y + 1)
+			) {
+				validMoves.push([this.x + 1, this.y + 1]);
+			}
+			if (
+				this.pieceThere(this.x - 1, this.y + 1) &&
+				!this.sameColorPiece(this.x - 1, this.y + 1)
+			) {
+				validMoves.push([this.x - 1, this.y + 1]);
+			}
+		} else {
+			if (
+				this.pieceThere(this.x + 1, this.y - 1) &&
+				!this.sameColorPiece(this.x + 1, this.y - 1)
+			) {
+				validMoves.push([this.x + 1, this.y - 1]);
+			}
+			if (
+				this.pieceThere(this.x - 1, this.y - 1) &&
+				!this.sameColorPiece(this.x - 1, this.y - 1)
+			) {
+				validMoves.push([this.x - 1, this.y - 1]);
+			}
+		}
+		return validMoves;
+	}
 }
 
 class Knight extends Piece {
@@ -134,14 +167,16 @@ class Knight extends Piece {
 		});
 		// Filter out moves if there is a piece of the same color
 		validMoves = validMoves.filter((move) => {
-			if (board.board[move[1]][move[0]].tile.currentPiece) {
-				return (
-					board.board[move[1]][move[0]].tile.currentPiece.color !== this.color
-				);
+			if (this.pieceThere(move[0], move[1])) {
+				return !this.sameColorPiece(move[0], move[1]);
 			}
 			return true;
 		});
 		return validMoves;
+	}
+
+	getAttackMoves() {
+		return this.getValidMoves();
 	}
 }
 
@@ -204,6 +239,10 @@ class Bishop extends Piece {
 
 		return validMoves;
 	}
+
+	getAttackMoves() {
+		return this.getValidMoves();
+	}
 }
 
 class Rook extends Piece {
@@ -249,6 +288,10 @@ class Rook extends Piece {
 
 		return validMoves;
 	}
+
+	getAttackMoves() {
+		return this.getValidMoves();
+	}
 }
 
 class Queen extends Piece {
@@ -260,6 +303,10 @@ class Queen extends Piece {
 		let validMoves = Rook.prototype.getValidMoves.call(this);
 		validMoves = validMoves.concat(Bishop.prototype.getValidMoves.call(this));
 		return validMoves;
+	}
+
+	getAttackMoves() {
+		return this.getValidMoves();
 	}
 }
 
@@ -297,25 +344,61 @@ class King extends Piece {
 
 		// Filter out moves if there is a piece of the same color
 		validMoves = validMoves.filter((move) => {
-			if (board.board[move[1]][move[0]].tile.currentPiece) {
-				return (
-					board.board[move[1]][move[0]].tile.currentPiece.color !== this.color
-				);
+			if (this.pieceThere(move[0], move[1])) {
+				return !this.sameColorPiece(move[0], move[1]);
 			}
 			return true;
 		});
 
 		let enemyPieces =
 			this.color === "white" ? board.blackPieces : board.whitePieces;
+		console.log(enemyPieces);
 		let attackedSquares = [];
 		enemyPieces.forEach((piece) => {
-			attackedSquares = attackedSquares.concat(piece.getValidMoves());
+			attackedSquares = attackedSquares.concat(piece.getAttackMoves());
 		});
+		console.log(attackedSquares);
 		validMoves = validMoves.filter((move) => {
 			let index = attackedSquares.findIndex(
 				(square) => square[0] === move[0] && square[1] === move[1]
 			);
 			return index === -1;
+		});
+
+		return validMoves;
+	}
+
+	getAttackMoves() {
+		let validMoves = [];
+		let moves = [
+			[this.x + 1, this.y + 1], // Right Up
+			[this.x + 1, this.y - 1], // Right Down
+			[this.x - 1, this.y + 1], // Left Up
+			[this.x - 1, this.y - 1], // Left Down
+			[this.x + 1, this.y], // Right
+			[this.x - 1, this.y], // Left
+			[this.x, this.y + 1], // Up
+			[this.x, this.y - 1], // Down
+		];
+
+		// Now filter if the move is inside the board
+		moves.forEach((move) => {
+			if (
+				move[0] >= 0 &&
+				move[0] < boardSize &&
+				move[1] >= 0 &&
+				move[1] < boardSize
+			) {
+				validMoves.push(move);
+			}
+		});
+
+		// Filter out moves if there is a piece of the same color
+		validMoves = validMoves.filter((move) => {
+			if (this.pieceThere(move[0], move[1])) {
+				return !this.sameColorPiece(move[0], move[1]);
+			}
+			return true;
 		});
 
 		return validMoves;
@@ -348,6 +431,9 @@ class Board {
 		this.turn = "white";
 		this.root = document.getElementById("root");
 		this.root.classList.toggle("rotate");
+
+		this.whiteKing = null;
+		this.blackKing = null;
 
 		this.moveCount = 0;
 		this.moveHistory = [];
@@ -407,7 +493,9 @@ class Board {
 
 		// Kings
 		this.whitePieces.push(new King(3, 0, "white", "king", this));
+		this.whiteKing = this.whitePieces[this.whitePieces.length - 1];
 		this.blackPieces.push(new King(3, 7, "black", "king", this));
+		this.blackKing = this.blackPieces[this.blackPieces.length - 1];
 
 		this.updateBoard();
 	}
@@ -488,18 +576,21 @@ class Board {
 		});
 	}
 
-	isCheck(piece) {
-		let king = null;
-		if (piece.color === "white") {
-			king = this.blackPieces.find((piece) => piece.type === "king");
-		} else {
-			king = this.whitePieces.find((piece) => piece.type === "king");
-		}
-		let moves = piece.getValidMoves();
+	kingInList(king, moves) {
 		let index = moves.findIndex(
 			(move) => move[0] === king.x && move[1] === king.y
 		);
-		if (index !== -1) {
+		return index !== -1;
+	}
+
+	isCheck(piece) {
+		// Determine enemy king color
+		let king = piece.color === "white" ? this.blackKing : this.whiteKing;
+
+		// Get all possible moves of the piece
+		let moves = piece.getValidMoves();
+		// Check if the enemy king is in the list of attacked squares
+		if (this.kingInList(king, moves)) {
 			king.piece.classList.add("check");
 			king.underCheck = true;
 			return true;
@@ -509,6 +600,7 @@ class Board {
 		return false;
 	}
 
+	// This function should be on each Class that extends Piece
 	leavesKingInCheck(piece, toX, toY) {
 		let king = null;
 		if (piece.color === "white") {
@@ -554,6 +646,7 @@ class Board {
 		let index = enemyMoves.findIndex(
 			(move) => move[0] === king.x && move[1] === king.y
 		);
+		``;
 		if (index !== -1) {
 			return true;
 		}
@@ -561,18 +654,26 @@ class Board {
 	}
 
 	isCheckmate(piece) {
+		let king = piece.color === "white" ? this.blackKing : this.whiteKing;
+
 		let moves = piece.getValidMoves();
-		let king = null;
 		// TODO: Check if the king can move out of check or if a piece can block the check
 	}
 
 	move(x, y) {
 		let piece = this.lastPieceHighlighted;
 
-		let oldX = piece.x;
-		let oldY = piece.y;
 		// Check if the move leaves the king in check
 		if (this.leavesKingInCheck(piece, x, y)) return;
+
+		let king = board.turn === "white" ? board.whiteKing : board.blackKing;
+		if (king.underCheck) {
+			king.piece.classList.remove("check");
+			king.underCheck = false;
+		}
+
+		let oldX = piece.x;
+		let oldY = piece.y;
 		// If there is a piece at the destination, remove it from the array
 		// or in chess terms, capture it
 		let capture = false;
