@@ -317,8 +317,37 @@ class King extends Piece {
 	}
 
 	getValidMoves() {
-		// TODO: Castling short and long
 		let validMoves = [];
+		if (!this.alreadyMoved && !this.underCheck) {
+			// TODO: Castling short and long
+			if (this.color === "white") {
+				if (this.board[0][0].tile.currentPiece.type === "rook")
+					if (!this.board[0][0].tile.currentPiece.alreadyMoved)
+						if (!this.pieceThere(1, 0) && !this.pieceThere(2, 0))
+							validMoves.push([1, 0]);
+				if (this.board[0][7].tile.currentPiece.type === "rook")
+					if (!this.board[0][7].tile.currentPiece.alreadyMoved)
+						if (
+							!this.pieceThere(5, 0) &&
+							!this.pieceThere(6, 0) &&
+							!this.pieceThere(4, 0)
+						)
+							validMoves.push([5, 0]);
+			} else {
+				if (this.board[7][0].tile.currentPiece.type === "rook")
+					if (!this.board[7][0].tile.currentPiece.alreadyMoved)
+						if (!this.pieceThere(1, 7) && !this.pieceThere(2, 7))
+							validMoves.push([1, 7]);
+				if (this.board[7][7].tile.currentPiece.type === "rook")
+					if (!this.board[7][7].tile.currentPiece.alreadyMoved)
+						if (
+							!this.pieceThere(5, 7) &&
+							!this.pieceThere(6, 7) &&
+							!this.pieceThere(4, 7)
+						)
+							validMoves.push([5, 7]);
+			}
+		}
 		let moves = [
 			[this.x + 1, this.y + 1], // Right Up
 			[this.x + 1, this.y - 1], // Right Down
@@ -352,12 +381,10 @@ class King extends Piece {
 
 		let enemyPieces =
 			this.color === "white" ? board.blackPieces : board.whitePieces;
-		console.log(enemyPieces);
 		let attackedSquares = [];
 		enemyPieces.forEach((piece) => {
 			attackedSquares = attackedSquares.concat(piece.getAttackMoves());
 		});
-		console.log(attackedSquares);
 		validMoves = validMoves.filter((move) => {
 			let index = attackedSquares.findIndex(
 				(square) => square[0] === move[0] && square[1] === move[1]
@@ -629,7 +656,7 @@ class Board {
 		);
 		let enemyMoves = [];
 		filteredPieces.forEach((piece) => {
-			let moves = piece.getValidMoves();
+			let moves = piece.getAttackMoves();
 			// if (moves.length !== 0) {
 			// 	console.log({ piece });
 			// 	for (let i = 0; i < moves.length; i++) {
@@ -642,15 +669,9 @@ class Board {
 		piece.y = originalY;
 		this.board[toY][toX].tile.currentPiece = oldPiece;
 		this.board[originalY][originalX].tile.currentPiece = piece;
+
 		// Check if the move leaves the king in check
-		let index = enemyMoves.findIndex(
-			(move) => move[0] === king.x && move[1] === king.y
-		);
-		``;
-		if (index !== -1) {
-			return true;
-		}
-		return false;
+		return this.kingInList(king, enemyMoves);
 	}
 
 	isCheckmate(piece) {
@@ -671,6 +692,8 @@ class Board {
 			king.piece.classList.remove("check");
 			king.underCheck = false;
 		}
+
+		// TODO: Implement special moves like castling and en passant
 
 		let oldX = piece.x;
 		let oldY = piece.y;
@@ -697,7 +720,6 @@ class Board {
 		let check = this.isCheck(piece); // Check if the move puts the enemy king in check
 
 		// TODO: After rendering the pieces, check if the king is in checkmate
-		// TODO: Get the king out of check if a move is made
 
 		if (check) {
 			if (this.isCheckmate(piece))
