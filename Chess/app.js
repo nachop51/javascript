@@ -11,12 +11,11 @@ class Piece {
 		this.type = type;
 		this.piece = document.createElement("div");
 		this.piece.classList.add("piece");
-		this.piece.classList.add(this.color);
-		this.piece.style.backgroundImage = `url("assets/${this.color}-${this.type}.png")`;
+		this.piece.style.background = `url("assets/${this.color}-${this.type}.png") center`;
 		this.piece.style.backgroundSize = "cover";
-		this.piece.style.backgroundPosition = "center";
 		this.alreadyMoved = false;
 		this.board = board.board;
+		this.game = board;
 
 		this.piece.addEventListener("click", () => {
 			if (board.turn !== this.color) return;
@@ -33,11 +32,57 @@ class Piece {
 	sameColorPiece(x, y) {
 		return this.board[y][x].tile.currentPiece.color === this.color;
 	}
+
+	kingInList(king, moves) {
+		let index = moves.findIndex(
+			(move) => move[0] === king.x && move[1] === king.y
+		);
+		return index !== -1;
+	}
+
+	// For heavy pieces and bishops
+	getPiecesAttackedSquares() {
+		let enemyPieces =
+			this.game.turn === "white"
+				? this.game.blackAttackedSquares
+				: this.game.whiteAttackedSquares;
+
+		let attackedSquares = [
+			...enemyPieces.bishop,
+			...enemyPieces.queen,
+			...enemyPieces.rook,
+		];
+
+		return attackedSquares;
+	}
+
+	// All pieces included
+	getAllPiecesAttackedSquares() {
+		let enemyPieces =
+			this.game.turn === "white"
+				? this.game.blackAttackedSquares
+				: this.game.whiteAttackedSquares;
+
+		let attackedSquares = [
+			...enemyPieces.king,
+			...enemyPieces.bishop,
+			...enemyPieces.queen,
+			...enemyPieces.rook,
+			...enemyPieces.knight,
+			...enemyPieces.pawn,
+		];
+
+		return attackedSquares;
+	}
 }
 
 class Pawn extends Piece {
 	constructor(x, y, color, type, board) {
 		super(x, y, color, type, board);
+	}
+
+	isPinned() {
+		let attackedSquares = this.getPiecesAttackedSquares();
 	}
 
 	getValidMoves() {
@@ -73,63 +118,19 @@ class Pawn extends Piece {
 
 	getAttackMoves() {
 		let validMoves = [];
+
 		if (this.color === "white") {
-			if (
-				this.pieceThere(this.x + 1, this.y + 1) &&
-				!this.sameColorPiece(this.x + 1, this.y + 1)
-			) {
+			if (this.x + 1 < boardSize) {
 				validMoves.push([this.x + 1, this.y + 1]);
 			}
-			if (
-				this.pieceThere(this.x - 1, this.y + 1) &&
-				!this.sameColorPiece(this.x - 1, this.y + 1)
-			) {
+			if (this.x - 1 >= 0) {
 				validMoves.push([this.x - 1, this.y + 1]);
 			}
 		} else {
-			if (
-				this.pieceThere(this.x + 1, this.y - 1) &&
-				!this.sameColorPiece(this.x + 1, this.y - 1)
-			) {
+			if (this.x + 1 < boardSize) {
 				validMoves.push([this.x + 1, this.y - 1]);
 			}
-			if (
-				this.pieceThere(this.x - 1, this.y - 1) &&
-				!this.sameColorPiece(this.x - 1, this.y - 1)
-			) {
-				validMoves.push([this.x - 1, this.y - 1]);
-			}
-		}
-		return validMoves;
-	}
-
-	getAttackMoves() {
-		let validMoves = [];
-
-		if (this.color === "white") {
-			if (
-				this.pieceThere(this.x + 1, this.y + 1) &&
-				!this.sameColorPiece(this.x + 1, this.y + 1)
-			) {
-				validMoves.push([this.x + 1, this.y + 1]);
-			}
-			if (
-				this.pieceThere(this.x - 1, this.y + 1) &&
-				!this.sameColorPiece(this.x - 1, this.y + 1)
-			) {
-				validMoves.push([this.x - 1, this.y + 1]);
-			}
-		} else {
-			if (
-				this.pieceThere(this.x + 1, this.y - 1) &&
-				!this.sameColorPiece(this.x + 1, this.y - 1)
-			) {
-				validMoves.push([this.x + 1, this.y - 1]);
-			}
-			if (
-				this.pieceThere(this.x - 1, this.y - 1) &&
-				!this.sameColorPiece(this.x - 1, this.y - 1)
-			) {
+			if (this.x - 1 >= 0) {
 				validMoves.push([this.x - 1, this.y - 1]);
 			}
 		}
@@ -321,11 +322,17 @@ class King extends Piece {
 		if (!this.alreadyMoved && !this.underCheck) {
 			// TODO: Castling short and long
 			if (this.color === "white") {
-				if (this.board[0][0].tile.currentPiece.type === "rook")
+				if (
+					this.pieceThere(0, 0) &&
+					this.board[0][0].tile.currentPiece.type === "rook"
+				)
 					if (!this.board[0][0].tile.currentPiece.alreadyMoved)
 						if (!this.pieceThere(1, 0) && !this.pieceThere(2, 0))
 							validMoves.push([1, 0]);
-				if (this.board[0][7].tile.currentPiece.type === "rook")
+				if (
+					this.pieceThere(0, 7) &&
+					this.board[0][7].tile.currentPiece.type === "rook"
+				)
 					if (!this.board[0][7].tile.currentPiece.alreadyMoved)
 						if (
 							!this.pieceThere(5, 0) &&
@@ -334,11 +341,17 @@ class King extends Piece {
 						)
 							validMoves.push([5, 0]);
 			} else {
-				if (this.board[7][0].tile.currentPiece.type === "rook")
+				if (
+					this.pieceThere(7, 0) &&
+					this.board[7][0].tile.currentPiece.type === "rook"
+				)
 					if (!this.board[7][0].tile.currentPiece.alreadyMoved)
 						if (!this.pieceThere(1, 7) && !this.pieceThere(2, 7))
 							validMoves.push([1, 7]);
-				if (this.board[7][7].tile.currentPiece.type === "rook")
+				if (
+					this.pieceThere(7, 7) &&
+					this.board[7][7].tile.currentPiece.type === "rook"
+				)
 					if (!this.board[7][7].tile.currentPiece.alreadyMoved)
 						if (
 							!this.pieceThere(5, 7) &&
@@ -379,12 +392,9 @@ class King extends Piece {
 			return true;
 		});
 
-		let enemyPieces =
-			this.color === "white" ? board.blackPieces : board.whitePieces;
-		let attackedSquares = [];
-		enemyPieces.forEach((piece) => {
-			attackedSquares = attackedSquares.concat(piece.getAttackMoves());
-		});
+		let attackedSquares = this.getPiecesAttackedSquares();
+
+		// Filter out moves if the king is going to be in check
 		validMoves = validMoves.filter((move) => {
 			let index = attackedSquares.findIndex(
 				(square) => square[0] === move[0] && square[1] === move[1]
@@ -462,11 +472,14 @@ class Board {
 		this.whiteKing = null;
 		this.blackKing = null;
 
+		this.blackAttackedSquares = {};
+		this.whiteAttackedSquares = {};
+
 		this.moveCount = 0;
 		this.moveHistory = [];
 
 		this.highlighting = false;
-		this.lastPieceHighlighted = null;
+		this.activePiece = null;
 
 		this.createBoard();
 	}
@@ -564,6 +577,35 @@ class Board {
 		this.updateBoard();
 	}
 
+	highlightMoves(moves, piece) {
+		if (this.highlighting) {
+			this.clearHighlights();
+			if (this.activePiece === piece) {
+				this.highlighting = false;
+				this.activePiece = null;
+				return;
+			}
+		}
+
+		moves.forEach((move) => {
+			this.board[move[1]][move[0]].tile.classList.add("highlight");
+			this.board[move[1]][move[0]].tile.onclick = (e) => {
+				this.move(move[0], move[1]);
+			};
+		});
+		this.activePiece = piece;
+		this.highlighting = true;
+	}
+
+	clearHighlights() {
+		this.board.forEach((row) => {
+			row.forEach((tile) => {
+				tile.tile.classList.remove("highlight");
+				tile.tile.onclick = null;
+			});
+		});
+	}
+
 	prettifyCoords(x, y, oldX, oldY, piece, capture, check) {
 		let letters = ["h", "g", "f", "e", "d", "c", "b", "a"];
 
@@ -629,12 +671,8 @@ class Board {
 
 	// This function should be on each Class that extends Piece
 	leavesKingInCheck(piece, toX, toY) {
-		let king = null;
-		if (piece.color === "white") {
-			king = this.whitePieces.find((piece) => piece.type === "king");
-		} else {
-			king = this.blackPieces.find((piece) => piece.type === "king");
-		}
+		let king = piece.color === "white" ? this.blackKing : this.whiteKing;
+
 		let originalX = piece.x;
 		let originalY = piece.y;
 		piece.x = toX;
@@ -682,7 +720,7 @@ class Board {
 	}
 
 	move(x, y) {
-		let piece = this.lastPieceHighlighted;
+		let piece = this.activePiece;
 
 		// Check if the move leaves the king in check
 		if (this.leavesKingInCheck(piece, x, y)) return;
@@ -714,6 +752,7 @@ class Board {
 		this.board[y][x].tile.currentPiece = piece;
 		piece.x = x;
 		piece.y = y;
+		piece.alreadyMoved = true;
 		this.updateBoard();
 		this.clearHighlights();
 
@@ -728,40 +767,39 @@ class Board {
 		}
 
 		this.highlighting = false;
-		this.lastPieceHighlighted = null;
+		this.activePiece = null;
 		if (this.turn === "white") this.moveCount++;
 		this.moveHistory.push({ oldX, oldY, x, y, piece, capture, check });
 		this.turn = this.turn === "white" ? "black" : "white";
-		piece.alreadyMoved = true;
+
+		this.calculateEnemyMoves();
 	}
 
-	clearHighlights() {
-		this.board.forEach((row) => {
-			row.forEach((tile) => {
-				tile.tile.classList.remove("highlight");
-				tile.tile.onclick = null;
-			});
-		});
-	}
+	calculateEnemyMoves() {
+		let attackedSquares =
+			this.turn === "white"
+				? this.blackAttackedSquares
+				: this.whiteAttackedSquares;
 
-	highlightMoves(moves, piece) {
-		if (this.highlighting) {
-			this.clearHighlights();
-			if (this.lastPieceHighlighted === piece) {
-				this.highlighting = false;
-				this.lastPieceHighlighted = null;
-				return;
-			}
-		}
+		attackedSquares = {
+			pawn: [],
+			knight: [],
+			bishop: [],
+			rook: [],
+			queen: [],
+			king: [],
+		};
 
-		moves.forEach((move) => {
-			this.board[move[1]][move[0]].tile.classList.add("highlight");
-			this.board[move[1]][move[0]].tile.onclick = (e) => {
-				this.move(move[0], move[1]);
-			};
+		// If it's white's turn to move, calculate the moves of the black pieces
+		let pieces = this.turn === "white" ? this.blackPieces : this.whitePieces;
+
+		pieces.forEach((piece) => {
+			attackedSquares[piece.type] = attackedSquares[piece.type].concat(
+				piece.getAttackMoves()
+			);
 		});
-		this.lastPieceHighlighted = piece;
-		this.highlighting = true;
+		if (this.turn === "white") this.blackAttackedSquares = attackedSquares;
+		else this.whiteAttackedSquares = attackedSquares;
 	}
 }
 
