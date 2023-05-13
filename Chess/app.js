@@ -33,6 +33,32 @@ class Piece {
 		return this.board[y][x].tile.currentPiece.color === this.color;
 	}
 
+	// For heavy pieces and bishops
+	getPiecesAttackedSquares(filterPieces = true) {
+		let enemyPieces =
+			this.game.turn === "white"
+				? this.game.blackPieces
+				: this.game.whitePieces;
+
+		if (filterPieces) {
+			enemyPieces = enemyPieces.filter((piece) => {
+				return (
+					piece.type !== "pawn" &&
+					piece.type !== "king" &&
+					piece.type !== "knight"
+				);
+			});
+		}
+
+		let attackedSquares = [];
+
+		enemyPieces.forEach((piece) => {
+			attackedSquares = attackedSquares.concat(piece.getAttackMoves());
+		});
+
+		return attackedSquares;
+	}
+
 	kingInList(king, moves) {
 		let index = moves.findIndex(
 			(move) => move[0] === king.x && move[1] === king.y
@@ -40,39 +66,179 @@ class Piece {
 		return index !== -1;
 	}
 
-	// For heavy pieces and bishops
-	getPiecesAttackedSquares() {
-		let enemyPieces =
-			this.game.turn === "white"
-				? this.game.blackAttackedSquares
-				: this.game.whiteAttackedSquares;
+	horizontalPin(piece) {
+		let pieceBetween = false;
+		let horizontal = false;
 
-		let attackedSquares = [
-			...enemyPieces.bishop,
-			...enemyPieces.queen,
-			...enemyPieces.rook,
-		];
+		if (piece.x !== this.x) return horizontal;
 
-		return attackedSquares;
+		// Check if there is a piece between the king and the piece
+		if (piece.x > this.x) {
+			for (let i = this.x + 1; i < piece.x; i++) {
+				if (this.pieceThere(i, this.y)) {
+					pieceBetween = true;
+					break;
+				}
+			}
+		} else {
+			for (let i = this.x - 1; i > piece.x; i--) {
+				if (this.pieceThere(i, this.y)) {
+					pieceBetween = true;
+					break;
+				}
+			}
+		}
+
+		if (!pieceBetween) horizontal = true;
+
+		return horizontal;
 	}
 
-	// All pieces included
-	getAllPiecesAttackedSquares() {
+	verticalPin(piece) {
+		let pieceBetween = false;
+		let vertical = false;
+
+		if (piece.y !== this.y) return vertical;
+
+		// Check if there is a piece between the king and the piece
+		if (piece.y > this.y) {
+			for (let i = this.y + 1; i < piece.y; i++) {
+				if (this.pieceThere(this.x, i)) {
+					pieceBetween = true;
+					break;
+				}
+			}
+		} else {
+			for (let i = this.y - 1; i > piece.y; i--) {
+				if (this.pieceThere(this.x, i)) {
+					pieceBetween = true;
+					break;
+				}
+			}
+		}
+
+		if (!pieceBetween) vertical = true;
+
+		return vertical;
+	}
+
+	diagonalPin(piece) {
+		let pieceBetween = false;
+		let diagonal = false;
+
+		if (Math.abs(piece.x - this.x) !== Math.abs(piece.y - this.y))
+			return diagonal;
+
+		// Check if there is a piece between the king and the piece
+		if (piece.x > this.x) {
+			if (piece.y > this.y) {
+				for (let i = 1; i < piece.x - this.x; i++) {
+					if (this.pieceThere(this.x + i, this.y + i)) {
+						pieceBetween = true;
+						break;
+					}
+				}
+			} else {
+				for (let i = 1; i < piece.x - this.x; i++) {
+					if (this.pieceThere(this.x + i, this.y - i)) {
+						pieceBetween = true;
+						break;
+					}
+				}
+			}
+		} else {
+			if (piece.y > this.y) {
+				for (let i = 1; i < this.x - piece.x; i++) {
+					if (this.pieceThere(this.x - i, this.y + i)) {
+						pieceBetween = true;
+						break;
+					}
+				}
+			} else {
+				for (let i = 1; i < this.x - piece.x; i++) {
+					if (this.pieceThere(this.x - i, this.y - i)) {
+						pieceBetween = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (!pieceBetween) diagonal = true;
+
+		return diagonal;
+	}
+
+	filterLegalMoves(moves) {
+		const legalMoves = [];
 		let enemyPieces =
-			this.game.turn === "white"
-				? this.game.blackAttackedSquares
-				: this.game.whiteAttackedSquares;
+			this.color === "white" ? this.game.blackPieces : this.game.whitePieces;
+		const king =
+			this.color === "white" ? this.game.whiteKing : this.game.blackKing;
 
-		let attackedSquares = [
-			...enemyPieces.king,
-			...enemyPieces.bishop,
-			...enemyPieces.queen,
-			...enemyPieces.rook,
-			...enemyPieces.knight,
-			...enemyPieces.pawn,
-		];
+		if (moves.length === 0) return moves;
 
-		return attackedSquares;
+		// Filter enemy pieces that are not pawns or kings or knights
+		enemyPieces = enemyPieces.filter((piece) => {
+			return (
+				piece.type !== "pawn" &&
+				piece.type !== "king" &&
+				piece.type !== "knight"
+			);
+		});
+
+		let vertical = false;
+		let horizontal = false;
+		let diagonal = false;
+
+		if (this.x === king.x) {
+			enemyPieces.forEach((piece) => {
+				if (horizontal) return;
+				if (piece.type === "rook" || piece.type === "queen") {
+					horizontal = this.horizontalPin(piece);
+				}
+			});
+		}
+
+		if (this.y === king.y) {
+			enemyPieces.forEach((piece) => {
+				if (vertical) return;
+				if (piece.type === "rook" || piece.type === "queen") {
+					vertical = this.verticalPin(piece);
+				}
+			});
+		}
+
+		if (Math.abs(this.x - king.x) === Math.abs(this.y - king.y)) {
+			enemyPieces.forEach((piece) => {
+				if (diagonal) return;
+				if (piece.type === "bishop" || piece.type === "queen") {
+					diagonal = this.diagonalPin(piece);
+				}
+			});
+		}
+
+		moves.forEach((move) => {
+			// Determine direction of the move
+			let xDir = move[0] - this.x;
+			let yDir = move[1] - this.y;
+			if (xDir !== 0) xDir /= Math.abs(xDir);
+			if (yDir !== 0) yDir /= Math.abs(yDir);
+
+			// Check if the move is horizontal
+			if (move[0] !== this.x && move[1] === this.y) {
+				if (!horizontal && !diagonal) legalMoves.push(move);
+			}
+			// Check if the move is vertical
+			else if (move[0] === this.x && move[1] !== this.y) {
+				if (!vertical && !diagonal) legalMoves.push(move);
+			} else {
+				// Check if the move is diagonal
+				if (!horizontal && !vertical && !diagonal) legalMoves.push(move);
+			}
+		});
+
+		return legalMoves;
 	}
 }
 
@@ -81,60 +247,39 @@ class Pawn extends Piece {
 		super(x, y, color, type, board);
 	}
 
-	isPinned() {
-		let attackedSquares = this.getPiecesAttackedSquares();
-	}
-
 	getValidMoves() {
 		let validMoves = [];
+		const movement = this.color === "white" ? 1 : -1;
 
-		if (!this.alreadyMoved) {
-			if (this.color === "white") {
-				if (
-					!this.pieceThere(this.x, this.y + 1) &&
-					!this.pieceThere(this.x, this.y + 2)
-				)
-					validMoves.push([this.x, this.y + 2]);
-			} else {
-				if (
-					!this.pieceThere(this.x, this.y - 1) &&
-					!this.pieceThere(this.x, this.y - 2)
-				)
-					validMoves.push([this.x, this.y - 2]);
-			}
-		}
-		if (this.color === "white") {
-			if (!this.pieceThere(this.x, this.y + 1))
-				validMoves.push([this.x, this.y + 1]);
-		} else {
-			if (!this.pieceThere(this.x, this.y - 1))
-				validMoves.push([this.x, this.y - 1]);
+		let n = 2;
+		if (!this.alreadyMoved) n = 3;
+
+		for (let i = 1; i < n; i++) {
+			if (this.pieceThere(this.x, this.y + i * movement)) break;
+			validMoves.push([this.x, this.y + i * movement]);
 		}
 
 		validMoves = validMoves.concat(this.getAttackMoves());
 
-		return validMoves;
+		return this.filterLegalMoves(validMoves);
 	}
 
 	getAttackMoves() {
 		let validMoves = [];
 
-		if (this.color === "white") {
-			if (this.x + 1 < boardSize) {
-				validMoves.push([this.x + 1, this.y + 1]);
-			}
-			if (this.x - 1 >= 0) {
-				validMoves.push([this.x - 1, this.y + 1]);
-			}
-		} else {
-			if (this.x + 1 < boardSize) {
-				validMoves.push([this.x + 1, this.y - 1]);
-			}
-			if (this.x - 1 >= 0) {
-				validMoves.push([this.x - 1, this.y - 1]);
-			}
+		const movement = this.color === "white" ? 1 : -1;
+		// Right attack
+		if (this.pieceThere(this.x + 1, this.y + movement)) {
+			if (!this.sameColorPiece(this.x + 1, this.y + movement))
+				validMoves.push([this.x + 1, this.y + movement]);
 		}
-		return validMoves;
+		// Left attack
+		if (this.pieceThere(this.x - 1, this.y + movement)) {
+			if (!this.sameColorPiece(this.x - 1, this.y + movement))
+				validMoves.push([this.x - 1, this.y + movement]);
+		}
+
+		return this.filterLegalMoves(validMoves);
 	}
 }
 
@@ -173,7 +318,7 @@ class Knight extends Piece {
 			}
 			return true;
 		});
-		return validMoves;
+		return this.filterLegalMoves(validMoves);
 	}
 
 	getAttackMoves() {
@@ -238,7 +383,7 @@ class Bishop extends Piece {
 			validMoves.push([i, j]);
 		}
 
-		return validMoves;
+		return this.filterLegalMoves(validMoves);
 	}
 
 	getAttackMoves() {
@@ -287,7 +432,7 @@ class Rook extends Piece {
 			validMoves.push([i, this.y]);
 		}
 
-		return validMoves;
+		return this.filterLegalMoves(validMoves);
 	}
 
 	getAttackMoves() {
@@ -606,7 +751,7 @@ class Board {
 		});
 	}
 
-	prettifyCoords(x, y, oldX, oldY, piece, capture, check) {
+	prettifyCoords({ x, y, oldX, oldY, piece, capture, check }) {
 		let letters = ["h", "g", "f", "e", "d", "c", "b", "a"];
 
 		if (!piece) {
@@ -633,15 +778,7 @@ class Board {
 
 	printMoveHistory() {
 		this.moveHistory.forEach((move) => {
-			this.prettifyCoords(
-				move.x,
-				move.y,
-				move.oldX,
-				move.oldY,
-				move.piece,
-				move.capture,
-				move.check
-			);
+			this.prettifyCoords(move);
 		});
 	}
 
@@ -722,9 +859,6 @@ class Board {
 	move(x, y) {
 		let piece = this.activePiece;
 
-		// Check if the move leaves the king in check
-		if (this.leavesKingInCheck(piece, x, y)) return;
-
 		let king = board.turn === "white" ? board.whiteKing : board.blackKing;
 		if (king.underCheck) {
 			king.piece.classList.remove("check");
@@ -771,35 +905,6 @@ class Board {
 		if (this.turn === "white") this.moveCount++;
 		this.moveHistory.push({ oldX, oldY, x, y, piece, capture, check });
 		this.turn = this.turn === "white" ? "black" : "white";
-
-		this.calculateEnemyMoves();
-	}
-
-	calculateEnemyMoves() {
-		let attackedSquares =
-			this.turn === "white"
-				? this.blackAttackedSquares
-				: this.whiteAttackedSquares;
-
-		attackedSquares = {
-			pawn: [],
-			knight: [],
-			bishop: [],
-			rook: [],
-			queen: [],
-			king: [],
-		};
-
-		// If it's white's turn to move, calculate the moves of the black pieces
-		let pieces = this.turn === "white" ? this.blackPieces : this.whitePieces;
-
-		pieces.forEach((piece) => {
-			attackedSquares[piece.type] = attackedSquares[piece.type].concat(
-				piece.getAttackMoves()
-			);
-		});
-		if (this.turn === "white") this.blackAttackedSquares = attackedSquares;
-		else this.whiteAttackedSquares = attackedSquares;
 	}
 }
 
