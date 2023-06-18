@@ -1,7 +1,7 @@
 const rows = 7;
-const cols = 8;
-const cellSize = 50;
-const delayTime = 1000;
+const cols = 16;
+const cellSize = 50; // px
+const delayTime = 300; // ms
 
 const letters = [
 	{
@@ -147,11 +147,11 @@ const letters = [
 	{
 		letter: "O",
 		matrix: [
-			[0, 1, 1, 0],
-			[1, 0, 0, 1],
-			[1, 0, 0, 1],
-			[1, 0, 0, 1],
-			[0, 1, 1, 0],
+			[0, 1, 1, 1, 0],
+			[1, 0, 0, 0, 1],
+			[1, 0, 0, 0, 1],
+			[1, 0, 0, 0, 1],
+			[0, 1, 1, 1, 0],
 		],
 	},
 	{
@@ -266,12 +266,140 @@ const letters = [
 	},
 	{
 		letter: " ",
+		matrix: [[0], [0], [0], [0], [0]],
+	},
+	{
+		letter: "!",
+		matrix: [[1], [1], [1], [0], [1]],
+	},
+	{
+		letter: "'",
 		matrix: [
-			[0, 0, 0, 0],
-			[0, 0, 0, 0],
-			[0, 0, 0, 0],
-			[0, 0, 0, 0],
-			[0, 0, 0, 0],
+			[0, 1],
+			[0, 1],
+			[0, 0],
+			[0, 0],
+			[0, 0],
+		],
+	},
+	{
+		letter: "<",
+		matrix: [
+			[0, 0, 1],
+			[0, 1, 0],
+			[1, 0, 0],
+			[0, 1, 0],
+			[0, 0, 1],
+		],
+	},
+	{
+		letter: ">",
+		matrix: [
+			[1, 0, 0],
+			[0, 1, 0],
+			[0, 0, 1],
+			[0, 1, 0],
+			[1, 0, 0],
+		],
+	},
+	{
+		letter: "0",
+		matrix: [
+			[0, 1, 1, 0],
+			[1, 0, 0, 1],
+			[1, 0, 0, 1],
+			[1, 0, 0, 1],
+			[0, 1, 1, 0],
+		],
+	},
+	{
+		letter: "1",
+		matrix: [
+			[0, 0, 1],
+			[0, 1, 1],
+			[1, 0, 1],
+			[0, 0, 1],
+			[0, 0, 1],
+		],
+	},
+	{
+		letter: "2",
+		matrix: [
+			[0, 1, 1, 0],
+			[1, 0, 0, 1],
+			[0, 0, 1, 0],
+			[0, 1, 0, 0],
+			[1, 1, 1, 1],
+		],
+	},
+	{
+		letter: "3",
+		matrix: [
+			[1, 1, 0],
+			[0, 0, 1],
+			[1, 1, 0],
+			[0, 0, 1],
+			[1, 1, 0],
+		],
+	},
+	{
+		letter: "4",
+		matrix: [
+			[0, 0, 1, 0],
+			[0, 1, 1, 0],
+			[1, 0, 1, 0],
+			[1, 1, 1, 1],
+			[0, 0, 1, 0],
+		],
+	},
+	{
+		letter: "5",
+		matrix: [
+			[1, 1, 1, 1],
+			[1, 0, 0, 0],
+			[1, 1, 1, 0],
+			[0, 0, 0, 1],
+			[1, 1, 1, 0],
+		],
+	},
+	{
+		letter: "6",
+		matrix: [
+			[0, 1, 1, 0],
+			[1, 0, 0, 0],
+			[1, 1, 1, 0],
+			[1, 0, 0, 1],
+			[0, 1, 1, 0],
+		],
+	},
+	{
+		letter: "7",
+		matrix: [
+			[1, 1, 1, 1],
+			[0, 0, 0, 1],
+			[0, 0, 1, 0],
+			[0, 1, 0, 0],
+			[1, 0, 0, 0],
+		],
+	},
+	{
+		letter: "8",
+		matrix: [
+			[0, 1, 1, 0],
+			[1, 0, 0, 1],
+			[0, 1, 1, 0],
+			[1, 0, 0, 1],
+			[0, 1, 1, 0],
+		],
+	},
+	{
+		letter: "9",
+		matrix: [
+			[0, 1, 1, 0],
+			[1, 0, 0, 1],
+			[0, 1, 1, 1],
+			[0, 0, 0, 1],
+			[0, 1, 1, 0],
 		],
 	},
 ];
@@ -314,52 +442,79 @@ class Matrix {
 		});
 	}
 
-	updateMatrix() {
-		this.clearGrid();
-		this.nextGrid.forEach((row, i) => {
-			row.forEach((col, j) => {
-				this.grid[i][j].style.backgroundColor = col ? "red" : "white";
-			});
-		});
+	clearGridCol(col) {
+		for (let i = 0; i < this.grid.length; i++) {
+			this.grid[i][col].style.backgroundColor = "white";
+		}
 	}
 
 	renderText(text) {
 		const textArray = text.toUpperCase().split("");
+
 		const textMatrix = textArray.map((letter) => {
 			const letterObject = letters.find((l) => l.letter === letter);
-			return letterObject.matrix;
+			return letterObject;
 		});
 
-		for (let i = 0; i < textMatrix.length; i++) {
-			setTimeout(() => {
-				this.renderLetter(textMatrix[i]);
-			}, delayTime * i);
-		}
+		const newGrid = this.createGridOfLetters(textMatrix);
 
-		setTimeout(() => {
-			this.clearGrid();
-		}, delayTime * (textMatrix.length + 1));
+		this.renderGrid(newGrid);
 
 		setTimeout(() => {
 			this.renderText(text);
-		}, delayTime * (textMatrix.length + 2));
+		}, delayTime * newGrid[0].length);
 	}
 
-	renderLetter(letter) {
-		const letterMatrix = letter;
-		const letterRows = letterMatrix.length;
-		const letterCols = letterMatrix[0].length;
+	createGridOfLetters(letters) {
+		// Empty rows * cols grid
+		const newGrid = new Array(this.rows).fill(0).map(() => new Array(0));
 
-		const startRow = Math.floor((this.rows - letterRows) / 2);
-		const startCol = Math.floor((this.cols - letterCols) / 2);
-
-		for (let i = 0; i < letterRows; i++) {
-			for (let j = 0; j < letterCols; j++) {
-				this.nextGrid[startRow + i][startCol + j] = letterMatrix[i][j];
+		for (const letter of letters) {
+			newGrid[0] = newGrid[0].concat(
+				new Array(letter.matrix[0].length).fill(0)
+			);
+			for (let i = 1; i < newGrid.length - 1; i++) {
+				newGrid[i] = newGrid[i].concat(letter.matrix[i - 1]);
+			}
+			newGrid[this.rows - 1] = newGrid[this.rows - 1].concat(
+				new Array(letter.matrix[0].length).fill(0)
+			);
+			for (let i = 0; i < newGrid.length; i++) {
+				newGrid[i] = newGrid[i].concat([0]);
 			}
 		}
-		this.updateMatrix();
-		this.nextGrid = new Array(rows).fill(0).map(() => new Array(cols).fill(0));
+
+		const arr = new Array(this.cols).fill(0);
+
+		for (let i = 0; i < newGrid.length; i++) {
+			newGrid[i] = newGrid[i].concat(arr);
+		}
+
+		// console.log(newGrid);
+
+		return newGrid;
+	}
+
+	renderGrid(newGrid) {
+		for (let i = 0; i < newGrid[0].length; i++) {
+			setTimeout(() => {
+				this.moveGridToTheLeft();
+				this.clearGridCol(this.cols - 1);
+				for (let j = 0; j < newGrid.length; j++) {
+					if (newGrid[j][i] === 1)
+						this.grid[j][this.cols - 1].style.backgroundColor = "red";
+				}
+			}, delayTime * i);
+		}
+	}
+
+	moveGridToTheLeft() {
+		for (let i = 1; i < this.grid.length - 1; i++) {
+			for (let j = 1; j < this.grid[i].length; j++) {
+				this.grid[i][j - 1].style.backgroundColor =
+					this.grid[i][j].style.backgroundColor;
+			}
+		}
 	}
 }
 
@@ -392,13 +547,13 @@ const caesarShift = (str, amount) => {
 const matrix = new Matrix(rows, cols);
 
 const urlParams = new URLSearchParams(window.location.search);
-let text = urlParams.get("text");
+let text = urlParams.get("text") || "Hello World";
 
-if (text) {
+if (text !== "Hello World") {
 	text = text.toUpperCase();
 	text = caesarShift(text, 3);
 }
 
-console.log(text);
+// console.log(text);
 
-matrix.renderText(text ? text : "Hello World");
+matrix.renderText(text);
