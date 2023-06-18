@@ -1,0 +1,21 @@
+*,
+*::after,
+*::before {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	background-color: #1e1e1e;
+	display: grid;
+	place-items: center;
+	min-height: 100vh;
+}
+
+.cell {
+	width: 50px;
+	height: 50px;
+	background-color: #000;
+	border-radius: 50%;
+}
