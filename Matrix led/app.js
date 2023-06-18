@@ -335,6 +335,14 @@ class Matrix {
 				this.renderLetter(textMatrix[i]);
 			}, delayTime * i);
 		}
+
+		setTimeout(() => {
+			this.clearGrid();
+		}, delayTime * (textMatrix.length + 1));
+
+		setTimeout(() => {
+			this.renderText(text);
+		}, delayTime * (textMatrix.length + 2));
 	}
 
 	renderLetter(letter) {
