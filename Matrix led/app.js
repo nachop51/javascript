@@ -551,7 +551,7 @@ let text = urlParams.get("text") || "Hello World";
 
 if (text !== "Hello World") {
 	text = text.toUpperCase();
-	text = caesarShift(text, 3);
+	// text = caesarShift(text, 3);
 }
 
 // console.log(text);
