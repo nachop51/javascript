@@ -11,13 +11,13 @@ const gameDifficulty = {
     mod1: 8,
     mod2: 4,
     score: 0,
-    highScore: 0,
+    highScore: localStorage.getItem('hardHighScore') || 0,
   },
   easy: {
     mod1: 12,
     mod2: 6,
     score: 0,
-    highScore: 0,
+    highScore: localStorage.getItem('easyHighScore') || 0,
   },
 };
 
@@ -97,7 +97,10 @@ function wrongColor() {
 
   const { score, highScore } = gameDifficulty[difficulty];
 
-  if (score > highScore) gameDifficulty[difficulty].highScore = score;
+  if (score > highScore) {
+    gameDifficulty[difficulty].highScore = score;
+    localStorage.setItem(`${difficulty}HighScore`, score);
+  }
 
   const button = document.createElement('button');
   button.onclick = resetGame;

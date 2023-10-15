@@ -1,6 +1,10 @@
+:root {
+  --bg-color: #e4def7;
+}
+
 body {
   min-height: 100vh;
-  background-color: #e4def7;
+  background-color: var(--bg-color);
   color: #222;
 
   display: flex;
@@ -28,7 +32,7 @@ p {
 
 fieldset {
   padding: 1rem 2rem;
-  border: 2px solid #e4def7;
+  border: 2px solid var(--bg-color);
   border-radius: 10px;
 }
 
@@ -37,15 +41,15 @@ fieldset {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background-color: #ffffff;
-  gap: 2rem;
+  background-color: #fff;
+  gap: 0.5rem;
   /* 1 > 4, 2 > up/down r/l, 3 > up r/l down */
-  padding: 4rem;
+  padding: 3rem 6rem;
   border-radius: 1.5rem;
 }
 
 #game {
-  margin: 0 auto;
+  margin: 1rem auto;
   width: 330px;
   display: flex;
   flex-flow: row wrap;
