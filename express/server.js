@@ -1,11 +1,11 @@
-const express = require("express");
+const express = require('express')
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 3000
 
-const app = express();
+const app = express()
 // Disable the x-powered-by header
 // This header could result in security issues
-app.disable("x-powered-by");
+app.disable('x-powered-by')
 
 // or path based middleware:
 // app.use("/api/*", (req, res, next) => {
@@ -40,26 +40,26 @@ app.disable("x-powered-by");
 // });
 
 // ^^^ is the same as:
-app.use(express.json());
+app.use(express.json())
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   // res.status(200) // default
 
   // Content-Type is automatically set to text/html
   // by express when sending a string
-  res.send("<h1>Hello world 🐷</h1>");
+  res.send('<h1>Hello world 🐷</h1>')
   // Same if we use json or another thing
   // res.json({ message: "Hello world 🐷" });
-});
+})
 
 // app.post("/", (req, res) => {
 //   res.status(201).send(req.body);
 // });
 
 app.use((req, res) => {
-  res.status(404).send("<h1>404 - Page not found</h1>");
-});
+  res.status(404).send('<h1>404 - Page not found</h1>')
+})
 
 app.listen(PORT, () =>
   console.log(`server listening on port http://localhost:${PORT}`)
-);
+)
