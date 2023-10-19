@@ -1,19 +1,48 @@
 const express = require('express') // require -> commonjs
 const crypto = require('node:crypto')
 const movies = require('./movies.json')
-const z = require('zod')
-const { validateMovie } = require('./schemas/movies')
+const cors = require('cors')
+const { validateMovie, validatePartialMovie } = require('./schemas/movies')
 
 const app = express()
+app.use(express.json())
+app.use(cors({
+  origin: (origin, cb) => {
+    const ACCEPTED_ORIGINS = [
+      'http://localhost:8080',
+      'http://localhost:1234',
+      'https://my-app.com',
+      'https://my-other-app.com'
+    ]
+
+    if (!origin || ACCEPTED_ORIGINS.includes(origin)) {
+      return cb(null, true)
+    }
+
+    cb(new Error('Origin not allowed'))
+  }
+}))
 app.disable('x-powered-by')
 
-app.use(express.json())
+// Safe methods => GET/HEAD/OPTIONS/TRACE
+// Unsafe methods => POST/PUT/PATCH/DELETE
+
+// CORS Pre-flight request
+// OPTIONS /movies
 
 app.get('/', (req, res) => {
   res.json({ message: 'Hello world 🐷' })
 })
 
 app.get('/movies', (req, res) => {
+  // const origin = req.headers.origin
+
+  // if (!ACCEPTED_ORIGINS.includes(origin)) {
+  //   return res.status(403).json({ message: 'Origin not allowed' })
+  // }
+
+  // Any origin can access this endpoint
+  // res.setHeader('Access-Control-Allow-Origin', origin) // <- CORS policy
   const genre = req.query.genre // -> /movies?genre=action
 
   if (genre) {
@@ -78,6 +107,64 @@ app.post('/movies', (req, res) => {
 
 // app.get('/ab(cd)?e', (req, res) => { // -> abe, abcde
 //   Implementation ...
+// })
+
+app.patch('/movies/:id', (req, res) => {
+  const { id } = req.params
+
+  const movieIndex = movies.findIndex(movie => movie.id === id)
+
+  if (movieIndex === -1) return res.status(404).json({ message: 'Movie not found' })
+
+  const result = validatePartialMovie(req.body)
+
+  if (result.error) {
+    return res.status(400).json({ error: JSON.parse(result.error.message) })
+  }
+
+  const updatedMovie = {
+    ...movies[movieIndex],
+    ...result.data
+  }
+
+  movies[movieIndex] = updatedMovie
+
+  res.json(updatedMovie)
+})
+
+app.delete('/movies/:id', (req, res) => {
+  // This doesn't work with CORS ❌
+  // because it will first send a pre-flight request
+  // app.options('/movies/:id') needs to be implemented
+  // const origin = req.headers.origin
+
+  // if (!ACCEPTED_ORIGINS.includes(origin)) {
+  //   return res.status(403).json({ message: 'Origin not allowed' })
+  // }
+
+  // res.setHeader('Access-Control-Allow-Origin', origin)
+
+  const { id } = req.params
+
+  const movieIndex = movies.findIndex(movie => movie.id === id)
+
+  if (movieIndex === -1) return res.status(404).json({ message: 'Movie not found' })
+
+  movies.splice(movieIndex, 1)
+
+  res.status(204).json({ message: 'Movie deleted' })
+})
+
+// app.options('/movies/:id', (req, res) => {
+//   const origin = req.headers.origin
+
+//   if (!ACCEPTED_ORIGINS.includes(origin)) {
+//     return res.status(403).json({ message: 'Origin not allowed' })
+//   }
+
+//   res.setHeader('Access-Control-Allow-Origin', origin)
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, DELETE')
+//   res.send()
 // })
 
 app.listen(3000, () => {
