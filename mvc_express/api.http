@@ -1,0 +1,40 @@
+### Retrieve movies
+GET http://localhost:3000/movies
+
+### Retrieve movie by id
+GET http://localhost:3000/movies/dcdd0fad-a94c-4810-8acc-5f108d3b18c3
+
+### Retrieve by genre
+GET http://localhost:3000/movies?genre=Action
+
+### Post a movie
+POST http://localhost:3000/movies
+Content-Type: application/json
+
+{
+  "title": "The Godfather",
+  "year": 1975,
+  "director": "Francis Ford Coppola",
+  "duration": 175,
+  "genre": [
+    "crime",
+    "drama"
+  ],
+  "poster": "https://i.imgur.com/Uzvny9I.jpg"
+}
+
+### This is an invalid POST
+POST http://localhost:3000/movies
+Content-Type: application/json
+
+{
+  "nope": "hehe"
+}
+
+### Update a movie
+PATCH http://localhost:3000/movies/dcdd0fad-a94c-4810-8acc-5f108d3b18c3
+Content-Type: application/json
+
+{
+  "year": 1993
+}
