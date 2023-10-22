@@ -5,6 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "start:mysql": "node --watch server.js",
+    "start:local": "node --watch server-local.js",
     "dev": "node --watch app.js"
   },
   "keywords": [],
