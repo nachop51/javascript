@@ -1,11 +1,14 @@
 import { Router } from 'express'
 import { MovieController } from '../controllers/movies.js'
+import { MovieModel } from '../models/mysql/movie.js'
 
 export const moviesRouter = Router()
 
-moviesRouter.get('/', MovieController.getAll)
-moviesRouter.post('/', MovieController.create)
+const movieController = new MovieController({ movieModel: MovieModel })
 
-moviesRouter.get('/:id', MovieController.getById)
-moviesRouter.delete('/:id', MovieController.delete)
-moviesRouter.patch('/:id', MovieController.update)
+moviesRouter.get('/', movieController.getAll)
+moviesRouter.post('/', movieController.create)
+
+moviesRouter.get('/:id', movieController.getById)
+moviesRouter.delete('/:id', movieController.delete)
+moviesRouter.patch('/:id', movieController.update)

@@ -1,39 +1,43 @@
-import { MovieModel } from '../models/movie.js'
+// import { MovieModel } from '../models/movie.js'
 import { validateMovie, validatePartialMovie } from '../schemas/movies.js'
 
 export class MovieController {
-  static async getAll (req, res) {
+  constructor ({ movieModel }) {
+    this.movieModel = movieModel
+  }
+
+  getAll = async (req, res) => {
     const genre = req.query.genre
 
-    const movies = await MovieModel.getAll({ genre })
+    const movies = await this.movieModel.getAll({ genre })
 
     res.json(movies)
   }
 
-  static async getById (req, res) {
+  getById = async (req, res) => {
     const { id } = req.params
-    const movie = await MovieModel.getById({ id })
+    const movie = await this.movieModel.getById({ id })
     if (movie) return res.json(movie)
 
     res.status(404).json({ message: 'Movie not found' })
   }
 
-  static async create (req, res) {
+  create = async (req, res) => {
     const result = validateMovie(req.body)
 
     if (result.error) {
       return res.status(400).json({ error: JSON.parse(result.error.message) })
     }
 
-    const newMovie = await MovieModel.create(result.data)
+    const newMovie = await this.movieModel.create(result.data)
 
     res.status(201).json(newMovie)
   }
 
-  static async delete (req, res) {
+  delete = async (req, res) => {
     const { id } = req.params
 
-    const result = await MovieModel.delete({ id })
+    const result = await this.movieModel.delete({ id })
 
     if (!result) {
       return res.status(404).json({ message: 'Movie not found' })
@@ -42,7 +46,7 @@ export class MovieController {
     res.status(204).json({ message: 'Movie deleted' })
   }
 
-  static async update (req, res) {
+  update = async (req, res) => {
     const result = validatePartialMovie(req.body)
 
     if (result.error) {
@@ -51,7 +55,7 @@ export class MovieController {
 
     const { id } = req.params
 
-    const updatedMovie = await MovieModel.update({ id, input: result.data })
+    const updatedMovie = await this.movieModel.update({ id, input: result.data })
 
     if (!updatedMovie) {
       return res.status(404).json({ message: 'Movie not found' })
