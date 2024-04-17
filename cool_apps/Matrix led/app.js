@@ -1,7 +1,7 @@
 const rows = 7;
 const cols = 16;
 const cellSize = 50; // px
-const delayTime = 300; // ms
+const delayTime = 200; // ms
 
 const letters = [
 	{
@@ -551,9 +551,9 @@ let text = urlParams.get("text") || "Hello World";
 
 if (text !== "Hello World") {
 	text = text.toUpperCase();
-	// text = caesarShift(text, 3);
+	text = caesarShift(text, 3);
 }
 
-// console.log(text);
+console.log(text);
 
 matrix.renderText(text);
