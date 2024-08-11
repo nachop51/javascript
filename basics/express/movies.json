@@ -147,6 +147,36 @@
     "duration": 162,
     "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
     "genre": ["Action", "Adventure", "Fantasy"],
-    "rate": 7.8
+    "rate": 7.8,
+    "test": {
+      "id": "6a360a18-c645-4b47-9a7b-2a71babbf3e0",
+      "title": "Avatar",
+      "year": 2009,
+      "director": "James Cameron",
+      "duration": 162,
+      "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
+      "genre": ["Action", "Adventure", "Fantasy"],
+      "rate": 7.8,
+      "test": {
+        "id": "6a360a18-c645-4b47-9a7b-2a71babbf3e0",
+        "title": "Avatar",
+        "year": 2009,
+        "director": "James Cameron",
+        "duration": 162,
+        "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
+        "genre": ["Action", "Adventure", "Fantasy"],
+        "rate": 7.8,
+        "test": {
+          "id": "6a360a18-c645-4b47-9a7b-2a71babbf3e0",
+          "title": "Avatar",
+          "year": 2009,
+          "director": "James Cameron",
+          "duration": 162,
+          "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
+          "genre": ["Action", "Adventure", "Fantasy"],
+          "rate": 7.8
+        }
+      }
+    }
   }
 ]

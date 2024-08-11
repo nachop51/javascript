@@ -63,3 +63,5 @@ app.use((req, res) => {
 app.listen(PORT, () =>
   console.log(`server listening on port http://localhost:${PORT}`)
 )
+
+document.getElementById('app').style = 'test'

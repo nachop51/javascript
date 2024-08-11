@@ -1,7 +1,7 @@
 const rows = 7;
 const cols = 16;
 const cellSize = 50; // px
-const delayTime = 200; // ms
+const delayTime = 250; // ms
 
 const letters = [
 	{
@@ -544,6 +544,8 @@ const caesarShift = (str, amount) => {
 	return output;
 };
 
+// This is a comment.
+
 const matrix = new Matrix(rows, cols);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -557,3 +559,11 @@ if (text !== "Hello World") {
 console.log(text);
 
 matrix.renderText(text);
+
+fetch(() => {})
+	.then(() => {
+		console.log("Fetched");
+	})
+	.catch(() => {
+		console.log("Error");
+	});

@@ -1,21 +1,39 @@
 *,
 *::after,
 *::before {
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-	background-color: #1e1e1e;
-	display: grid;
-	place-items: center;
-	min-height: 100vh;
+  background-color: #1e1e1e;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
 }
 
-.cell {
-	width: 50px;
-	height: 50px;
-	background-color: #000;
-	border-radius: 50%;
+.cell:hover {
+  width: 50px !important;
+  height: 50px;
+  background-color: #000;
+  border-radius: 50%;
 }
+
+#id {
+  @apply test;
+}
+
+a > h1:hover {
+  color: #fff;
+  font-size: 2rem;
+  text-align: center;
+  margin-top: 1rem;
+  -o-animation: 2;
+  animation: alternate;
+}
+
+:hover ::selection {
+}
+
+/* ;wqr-[[{}]] */
