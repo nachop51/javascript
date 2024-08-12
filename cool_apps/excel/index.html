@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel!</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    img {
+      width: 40px;
+      height: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    thead,
+    tr td:first-child {
+      background: #eee;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      font-weight: normal;
+      font-size: 12px;
+      text-align: center;
+      vertical-align: center;
+      height: 20px;
+      width: 64px;
+
+      position: relative;
+    }
+
+    span,
+    input {
+      position: absolute;
+      inset: 0;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+
+    input {
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+      width: 100%;
+
+      &:focus {
+        opacity: 1;
+        outline: 2px solid #0d9;
+      }
+    }
+  </style>
+  <script type="module">
+    const $ = el => document.querySelector(el)
+    const $$ = el => document.querySelectorAll(el)
+
+    const $table = $('table')
+    const $head = $('thead')
+    const $body = $('tbody')
+
+    const range = (end) => {
+      const arr = []
+      for (let i = 0; i < end; i++) {
+        arr.push(i)
+      }
+      return arr
+    }
+
+    const ROWS = 10
+    const COLS = 4
+    let STATE = range(COLS)
+      .map((i) => range(ROWS).map((j) => ({ computedValue: 0, value: 0 })))
+
+    console.log(STATE);
+
+    const getColumn = n => String.fromCharCode(65 + n)
+
+    function updateCell({ x, y, value }) {
+      const newState = structuredClone(STATE)
+      const constants = generateCellsConstants(newState)
+
+      const cell = newState[x][y]
+
+      cell.computedValue = computeValue(value, constants) // span
+      cell.value = value // input
+
+      STATE = newState
+
+      renderSpreadsheet()
+    }
+
+    function computeValue(value = '', constants) {
+      if (!value.startsWith('=')) {
+        return value
+      }
+
+      const formula = value.slice(1)
+
+      let computedValue
+
+      try {
+        computedValue = eval(`(() => {
+          ${constants}
+          return ${formula}
+        })()`)
+      } catch (e) {
+        computedValue = `!ERROR: ${e.message}`
+      }
+
+      return computedValue
+    }
+
+    function generateCellsConstants(cells) {
+      return cells.map((rows, x) => {
+        return rows.map((cell, y) => {
+          const letter = getColumn(x)
+          const number = y + 1
+
+          const cellId = `${letter}${number}`
+
+          return `const ${cellId} = ${cell.computedValue};`
+        }).join('\n')
+      }).join('\n')
+    }
+
+    const renderSpreadsheet = () => {
+      $head.innerHTML = `<tr>
+        <th></th>
+        ${range(COLS).map(col => `<th>${getColumn(col)}</th>`).join('')}
+      </tr>`
+
+      $body.innerHTML = range(ROWS).map(row => `
+        <tr>
+          <td>${row + 1}</td>
+          ${range(COLS).map(col => `<td data-x="${col}" data-y="${row}">
+            <span>${STATE[col][row].computedValue}</span>
+            <input type="text" value="${STATE[col][row].value}">
+          </td>`).join('')}
+        </tr>
+      `).join('')
+    }
+
+    $body.addEventListener('click', (e) => {
+      const $td = e.target.closest('td')
+
+      if (!$td) return
+
+      console.log($td);
+
+      const { x, y } = $td.dataset
+
+      console.log(x, y);
+
+      const $input = $td.querySelector('input')
+      const $span = $td.querySelector('span')
+
+      const end = $input.value.length
+      $input.setSelectionRange(end, end)
+      $input.focus()
+
+      $input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          $input.blur()
+        }
+      })
+
+      $input.addEventListener('blur', () => {
+        console.log({ value: $input.value, state: STATE[x][y].value });
+
+        if ($input.value === STATE[x][y].value) return
+
+        updateCell({ x, y, value: $input.value })
+      }, { once: true })
+    })
+
+    renderSpreadsheet()
+  </script>
+</head>
+
+<body>
+  <img src="https://cdn.pixabay.com/photo/2023/06/01/12/02/excel-logo-8033473_1280.png" alt="">
+
+  <table>
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+</body>
+
+</html>
