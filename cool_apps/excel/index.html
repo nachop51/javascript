@@ -82,8 +82,6 @@
     let STATE = range(COLS)
       .map((i) => range(ROWS).map((j) => ({ computedValue: 0, value: 0 })))
 
-    console.log(STATE);
-
     const getColumn = n => String.fromCharCode(65 + n)
 
     function updateCell({ x, y, value }) {
@@ -95,15 +93,17 @@
       cell.computedValue = computeValue(value, constants) // span
       cell.value = value // input
 
+      computeAllCells(newState, generateCellsConstants(newState))
+
       STATE = newState
 
       renderSpreadsheet()
     }
 
     function computeValue(value = '', constants) {
-      if (!value.startsWith('=')) {
-        return value
-      }
+      if (typeof value === 'number') return value
+
+      if (!value.startsWith('=')) return value
 
       const formula = value.slice(1)
 
@@ -134,6 +134,16 @@
       }).join('\n')
     }
 
+    function computeAllCells(cells, constants) {
+      return cells.map((rows, x) => {
+        return rows.map((cell, y) => {
+          const computedValue = computeValue(cell.value, constants)
+
+          cell.computedValue = computedValue
+        })
+      })
+    }
+
     const renderSpreadsheet = () => {
       $head.innerHTML = `<tr>
         <th></th>
@@ -156,11 +166,7 @@
 
       if (!$td) return
 
-      console.log($td);
-
       const { x, y } = $td.dataset
-
-      console.log(x, y);
 
       const $input = $td.querySelector('input')
       const $span = $td.querySelector('span')
