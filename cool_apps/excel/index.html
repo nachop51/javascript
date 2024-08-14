@@ -60,6 +60,14 @@
         outline: 2px solid #0d9;
       }
     }
+
+    .selected {
+      background: rgb(201, 255, 239);
+    }
+
+    th.selected {
+      background: rgb(124, 255, 216);
+    }
   </style>
   <script type="module">
     const $ = el => document.querySelector(el)
@@ -82,11 +90,16 @@
     let STATE = range(COLS)
       .map((i) => range(ROWS).map((j) => ({ computedValue: 0, value: 0 })))
 
+    let selectedColumn = null
+
     const getColumn = n => String.fromCharCode(65 + n)
 
     function updateCell({ x, y, value }) {
       const newState = structuredClone(STATE)
       const constants = generateCellsConstants(newState)
+
+      console.log({ constants });
+
 
       const cell = newState[x][y]
 
@@ -102,8 +115,9 @@
 
     function computeValue(value = '', constants) {
       if (typeof value === 'number') return value
-
       if (!value.startsWith('=')) return value
+
+      console.log({ value });
 
       const formula = value.slice(1)
 
@@ -115,7 +129,7 @@
           return ${formula}
         })()`)
       } catch (e) {
-        computedValue = `!ERROR: ${e.message}`
+        computedValue = `"!ERROR: ${e.message}"`
       }
 
       return computedValue
@@ -129,7 +143,7 @@
 
           const cellId = `${letter}${number}`
 
-          return `const ${cellId} = ${cell.computedValue};`
+          return `const ${cellId} = ${cell.computedValue || 0};`
         }).join('\n')
       }).join('\n')
     }
@@ -188,6 +202,48 @@
 
         updateCell({ x, y, value: $input.value })
       }, { once: true })
+    })
+
+    $head.addEventListener('click', e => {
+      const $th = e.target.closest('th')
+
+      if (!$th) return
+
+      const x = [...$th.parentNode.children].indexOf($th)
+
+      if (x <= 0) return
+
+      selectedColumn = x - 1
+
+      $$('.selected').forEach($el => $el.classList.remove('selected'))
+
+      $th.classList.add('selected')
+      $$(`tr td:nth-child(${x + 1})`).forEach($td => {
+        $td.classList.add('selected')
+      })
+    })
+
+    document.addEventListener('keydown', e => {
+      // if (event.key === 'ArrowDown' && selectedColumn !== null) {
+      //   const $td = $$(`tr td:nth-child(${selectedColumn + 2})`)[0]
+
+      //   const { x, y } = $td.dataset
+
+      //   const $input = $td.querySelector('input')
+      //   const $span = $td.querySelector('span')
+
+      //   const end = $input.value.length
+      //   $input.setSelectionRange(end, end)
+      //   $input.focus()
+      // }
+
+      if (e.key === 'Backspace' && selectedColumn != null) {
+        range(ROWS).forEach(row => {
+          updateCell({ x: selectedColumn, y: row, value: '' })
+        })
+      }
+
+      selectedColumn = null
     })
 
     renderSpreadsheet()
