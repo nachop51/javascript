@@ -189,6 +189,8 @@
       $input.setSelectionRange(end, end)
       $input.focus()
 
+      removeSelectedFromCells()
+
       $input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           $input.blur()
@@ -215,7 +217,7 @@
 
       selectedColumn = x - 1
 
-      $$('.selected').forEach($el => $el.classList.remove('selected'))
+      removeSelectedFromCells()
 
       $th.classList.add('selected')
       $$(`tr td:nth-child(${x + 1})`).forEach($td => {
@@ -241,10 +243,45 @@
         range(ROWS).forEach(row => {
           updateCell({ x: selectedColumn, y: row, value: '' })
         })
+        selectedColumn = null
       }
 
-      selectedColumn = null
+      if (e.key === 'Escape') {
+        selectedColumn = null
+        removeSelectedFromCells()
+      }
+
     })
+
+    document.addEventListener('copy', e => {
+      if (selectedColumn !== null) {
+        const columnValues = range(ROWS).map(row => {
+          return STATE[selectedColumn][row].computedValue
+        })
+
+        console.log({ columnValues });
+
+        e.clipboardData.setData('text/plain', columnValues.join('\n'))
+
+        e.preventDefault()
+      }
+    })
+
+    document.addEventListener('click', e => {
+      const { target } = e
+
+      const isThClicked = target.closest('th')
+      const isTdClicked = target.closest('td')
+
+      if (!isThClicked && !isTdClicked) {
+        selectedColumn = null
+        removeSelectedFromCells()
+      }
+    })
+
+    function removeSelectedFromCells() {
+      $$('.selected').forEach($el => $el.classList.remove('selected'))
+    }
 
     renderSpreadsheet()
   </script>
