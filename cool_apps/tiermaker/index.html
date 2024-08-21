@@ -7,6 +7,8 @@
   <title>Tiermaker</title>
 
   <link rel="stylesheet" href="style.css">
+
+  <script type="module" src="app.js"></script>
 </head>
 
 <body>
@@ -51,6 +53,30 @@
       </aside>
     </div>
   </section>
+
+  <footer id="selector">
+    <section id="selector-buttons">
+      <label>
+        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24">
+          <path fill="currentColor"
+            d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2m5 11h-4v4h-2v-4H7v-2h4V7h2v4h4z" />
+        </svg>
+        <input type="file" hidden id="image-input">
+      </label>
+
+
+      <button>
+        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24">
+          <path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10 8H5V3m.291 13.357a8 8 0 1 0 .188-8.991" />
+        </svg>
+      </button>
+    </section>
+
+    <section id="selector-items">
+
+    </section>
+  </footer>
 </body>
 
 </html>
