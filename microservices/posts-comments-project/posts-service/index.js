@@ -8,11 +8,11 @@ app.use(e())
 
 const posts = {}
 
-app.get('/posts', (req, res) => {
-  res.send(posts)
-})
+// app.get('/posts', (req, res) => {
+//   res.send(posts)
+// })
 
-app.post('/posts', async (req, res) => {
+app.post('/posts/create', async (req, res) => {
   const id = randomBytes(4).toString('hex')
 
   const { title } = req.body

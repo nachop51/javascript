@@ -53,17 +53,21 @@ app.post('/events', (req, res) => {
 app.listen(4002, async () => {
   console.log('query service runing on http://localhost:4002')
 
-  const res = await fetch('http://localhost:3000/events')
+  try {
+    const res = await fetch('http://event-bus-srv:3000/events')
 
-  const data = await res.json()
+    const data = await res.json()
 
-  console.log({ data })
+    console.log({ data })
 
-  for (let event of data) {
-    console.log('Processing event:', event.type)
+    for (let event of data) {
+      console.log('Processing event:', event.type)
 
-    const { type, data } = event
+      const { type, data } = event
 
-    handleEvent({ type, data })
+      handleEvent({ type, data })
+    }
+  } catch (err) {
+    console.error(err)
   }
 })

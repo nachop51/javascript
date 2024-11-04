@@ -13,7 +13,7 @@ app.post('/events', async (req, res) => {
 
     console.log('Comment Moderated:', status)
 
-    await fetch('http://localhost:3000/events', {
+    await fetch('http://event-bus-srv:3000/events', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

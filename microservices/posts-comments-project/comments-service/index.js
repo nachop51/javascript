@@ -25,7 +25,7 @@ app.post('/posts/:id/comments', async (req, res) => {
     status: 'pending'
   })
 
-  await fetch('http://localhost:3000/events', {
+  await fetch('http://event-bus-srv:3000/events', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -66,7 +66,7 @@ app.post('/events', async (req, res) => {
 
     comment.status = status
 
-    await fetch('http://localhost:3000/events', {
+    await fetch('http://event-bus-srv:3000/events', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
