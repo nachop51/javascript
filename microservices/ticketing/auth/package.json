@@ -1,0 +1,25 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.4",
+    "typescript": "^5.7.2",
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "express-async-errors": "^3.1.1",
+    "express-validator": "^7.2.0",
+    "mongoose": "^8.8.3"
+  }
+}
