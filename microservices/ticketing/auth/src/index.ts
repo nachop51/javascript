@@ -7,9 +7,19 @@ import { signoutRouter } from './routes/signout'
 import { signupRouter } from './routes/signup'
 import { errorHandler } from './middlewares/error-handler'
 import { NotFoundError } from './errors/not-found'
+import cookieSession from 'cookie-session'
 
 const app = express()
+// make express aware that it's behind a proxy of ingress-nginx
+app.set('trust proxy', true)
 app.use(express.json())
+app.use(
+  cookieSession({
+    signed: false,
+    secure: true,
+    httpOnly: true
+  })
+)
 
 app.use(currentUserRouter)
 app.use(signinRouter)
@@ -21,6 +31,10 @@ app.all('*', () => {
 })
 
 app.use(errorHandler)
+
+if (!process.env.JWT_KEY) {
+  throw new Error('JWT_KEY must be defined')
+}
 
 let attempts = 0
 
